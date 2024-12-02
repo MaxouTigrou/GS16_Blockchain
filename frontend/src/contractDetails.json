@@ -1,5 +1,5 @@
 {
-  "address": "0xbA97A64Af29A75e517e2864aB47eA47774F2D0d2",
+  "address": "0x2F50700450D42c26D3621e109cb48dda3058cbD8",
   "abi": [
     {
       "anonymous": false,
@@ -53,11 +53,17 @@
           "internalType": "string",
           "name": "newMessage",
           "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newTimestamp",
+          "type": "uint256"
         }
       ],
       "name": "LogUpdated",
       "type": "event",
-      "signature": "0x6f5621cf278f24f3264f2247a051b238433944ba7a3826fdaceef64c525721c4"
+      "signature": "0x6908f75696f145cd4a10d851e5cd2517b350f4cc5e9d90ad8bf4b0d2d4210552"
     },
     {
       "inputs": [

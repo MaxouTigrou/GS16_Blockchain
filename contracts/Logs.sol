@@ -11,7 +11,7 @@ contract Logs {
     Log[] public logs;
 
     event LogCreated(uint256 id, string message, address indexed author, uint256 timestamp);
-    event LogUpdated(uint256 id, string oldMessage, string newMessage);
+    event LogUpdated(uint256 id, string oldMessage, string newMessage, uint256 newTimestamp);
 
     // Fonction pour créer un log
     function createLog(string memory _message) public {
@@ -32,8 +32,10 @@ contract Logs {
         require(bytes(_newMessage).length > 0, "New message cannot be empty");
 
         string memory oldMessage = logs[_logId].message;
+        uint256 newTimestamp = block.timestamp; // Mettre à jour le timestamp lors de la modification
         logs[_logId].message = _newMessage;
+        logs[_logId].timestamp = newTimestamp;
 
-        emit LogUpdated(_logId, oldMessage, _newMessage);
+        emit LogUpdated(_logId, oldMessage, _newMessage, newTimestamp); // Émettre un événement avec le nouveau timestamp
     }
 }

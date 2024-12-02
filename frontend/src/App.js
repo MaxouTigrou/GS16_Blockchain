@@ -9,8 +9,8 @@ const App = () => {
   const [logs, setLogs] = useState([]); // Liste des logs
   const [newLog, setNewLog] = useState(""); // Nouveau message
   const [isLoading, setIsLoading] = useState(false); // Indicateur de chargement
-  const [editingLogId, setEditingLogId] = useState(null); // ID du log en cours d'édition
-  const [editMessage, setEditMessage] = useState(""); // Nouveau message pendant l'édition
+  const [editingLogId, setEditingLogId] = useState(null); // Log en cours d'édition
+  const [editedMessage, setEditedMessage] = useState(""); // Message édité
 
   // Initialisation de Web3 et connexion au contrat
   useEffect(() => {
@@ -34,14 +34,15 @@ const App = () => {
           await loadLogs(contractInstance);
 
           // Écouter le changement de compte dans MetaMask
-          window.ethereum.on("accountsChanged", (accounts) => {
+          window.ethereum.on('accountsChanged', (accounts) => {
             if (accounts.length > 0) {
-              setAccount(accounts[0]); // Mettre à jour l'adresse du compte
-              loadLogs(contractInstance); // Recharger les logs pour ce nouveau compte
+                setAccount(accounts[0]); // Mettre à jour l'adresse du compte
+                loadLogs(contractInstance); // Recharger les logs pour ce nouveau compte
             } else {
-              alert("No accounts found. Please connect a wallet.");
+                alert("No accounts found. Please connect a wallet.");
             }
-          });
+        });
+        
         } else {
           alert("Ethereum wallet is not detected. Install MetaMask!");
         }
@@ -58,10 +59,13 @@ const App = () => {
     try {
       const logData = await contractInstance.methods.getAllLogs().call();
 
+      console.log(logData);
+
       // Vérifie si des logs sont présents
       if (logData.length > 0) {
         // Transforme les logs en format lisible
-        const parsedLogs = logData.map((log) => ({
+        const parsedLogs = logData.map((log, index) => ({
+          id: index,
           message: log.message,
           author: log.author,
           timestamp: new Date(Number(log.timestamp) * 1000).toLocaleString(),
@@ -96,24 +100,36 @@ const App = () => {
   };
 
   // Fonction pour modifier un log
-  const editLog = async () => {
-    if (!editMessage.trim()) {
-      alert("Le message ne peut pas être vide !");
+  const editLog = async (id, newMessage) => {
+    if (!newMessage.trim()) {
+      alert("Log message cannot be empty!");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await contract.methods.updateLog(editingLogId, editMessage).send({ from: account });
-      setEditingLogId(null); // Réinitialise l'état
-      setEditMessage(""); // Réinitialise le champ
-      loadLogs(contract); // Recharge les logs
+      await contract.methods.updateLog(id, newMessage).send({ from: account });
+      setEditingLogId(null); // Annuler l'édition
+      setEditedMessage(""); // Réinitialiser le message édité
+      loadLogs(contract); // Recharger les logs
     } catch (error) {
-      console.error("Erreur lors de la modification du log :", error);
+      console.error("Error editing log:", error);
     }
 
     setIsLoading(false);
+  };
+
+  // Fonction pour afficher le bouton de modification
+  const handleEditButton = (logId, logMessage) => {
+    setEditingLogId(logId);
+    setEditedMessage(logMessage);
+  };
+
+  // Fonction pour annuler l'édition d'un log
+  const cancelEdit = () => {
+    setEditingLogId(null); // Annuler l'édition
+    setEditedMessage(""); // Réinitialiser le message édité
   };
 
   return (
@@ -141,40 +157,32 @@ const App = () => {
           <h2>Historique des Logs</h2>
           {logs.length > 0 ? (
             <ul>
-              {logs.map((log, index) => (
-                <li key={index}>
-                  {editingLogId === index ? (
-                    <div>
-                      <textarea
-                        value={editMessage}
-                        onChange={(e) => setEditMessage(e.target.value)}
-                      ></textarea>
-                      <button onClick={editLog}>Enregistrer</button>
-                      <button onClick={() => setEditingLogId(null)}>Annuler</button>
-                    </div>
-                  ) : (
-                    <>
-                      <p>
-                        <strong>Message :</strong> {log.message}
-                      </p>
-                      <p>
-                        <strong>Auteur :</strong> {log.author}
-                      </p>
-                      <p className="timestamp">
-                        <strong>Date :</strong> {log.timestamp}
-                      </p>
-                      {account === log.author && (
-                        <button
-                          onClick={() => {
-                            setEditingLogId(index);
-                            setEditMessage(log.message);
-                          }}
-                        >
-                          Modifier
+              {logs.map((log) => (
+                <li key={log.id}>
+                  <p><strong>Message :</strong> {log.message}</p>
+                  <p><strong>Auteur :</strong> {log.author}</p>
+                  <p className="timestamp"><strong>Date :</strong> {log.timestamp}</p>
+
+                  <div className="log-actions">
+                    {editingLogId === log.id ? (
+                      <div>
+                        <textarea
+                          value={editedMessage}
+                          onChange={(e) => setEditedMessage(e.target.value)}
+                        ></textarea>
+                        <button onClick={() => editLog(log.id, editedMessage)} disabled={isLoading}>
+                          {isLoading ? "Modification en cours..." : "Modifier"}
                         </button>
-                      )}
-                    </>
-                  )}
+                        <button onClick={cancelEdit} disabled={isLoading}>
+                          Annuler
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => handleEditButton(log.id, log.message)}>
+                        Modifier
+                      </button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
