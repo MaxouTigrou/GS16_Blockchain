@@ -9,6 +9,8 @@ const App = () => {
   const [logs, setLogs] = useState([]); // Liste des logs
   const [newLog, setNewLog] = useState(""); // Nouveau message
   const [isLoading, setIsLoading] = useState(false); // Indicateur de chargement
+  const [editingLogId, setEditingLogId] = useState(null); // ID du log en cours d'édition
+  const [editMessage, setEditMessage] = useState(""); // Nouveau message pendant l'édition
 
   // Initialisation de Web3 et connexion au contrat
   useEffect(() => {
@@ -32,15 +34,14 @@ const App = () => {
           await loadLogs(contractInstance);
 
           // Écouter le changement de compte dans MetaMask
-          window.ethereum.on('accountsChanged', (accounts) => {
+          window.ethereum.on("accountsChanged", (accounts) => {
             if (accounts.length > 0) {
-                setAccount(accounts[0]); // Mettre à jour l'adresse du compte
-                loadLogs(contractInstance); // Recharger les logs pour ce nouveau compte
+              setAccount(accounts[0]); // Mettre à jour l'adresse du compte
+              loadLogs(contractInstance); // Recharger les logs pour ce nouveau compte
             } else {
-                alert("No accounts found. Please connect a wallet.");
+              alert("No accounts found. Please connect a wallet.");
             }
-        });
-        
+          });
         } else {
           alert("Ethereum wallet is not detected. Install MetaMask!");
         }
@@ -56,8 +57,6 @@ const App = () => {
   const loadLogs = async (contractInstance) => {
     try {
       const logData = await contractInstance.methods.getAllLogs().call();
-
-      console.log(logData);
 
       // Vérifie si des logs sont présents
       if (logData.length > 0) {
@@ -96,6 +95,27 @@ const App = () => {
     setIsLoading(false); // Désactive le chargement
   };
 
+  // Fonction pour modifier un log
+  const editLog = async () => {
+    if (!editMessage.trim()) {
+      alert("Le message ne peut pas être vide !");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await contract.methods.updateLog(editingLogId, editMessage).send({ from: account });
+      setEditingLogId(null); // Réinitialise l'état
+      setEditMessage(""); // Réinitialise le champ
+      loadLogs(contract); // Recharge les logs
+    } catch (error) {
+      console.error("Erreur lors de la modification du log :", error);
+    }
+
+    setIsLoading(false);
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -123,15 +143,38 @@ const App = () => {
             <ul>
               {logs.map((log, index) => (
                 <li key={index}>
-                  <p>
-                    <strong>Message :</strong> {log.message}
-                  </p>
-                  <p>
-                    <strong>Auteur :</strong> {log.author}
-                  </p>
-                  <p className="timestamp">
-                    <strong>Date :</strong> {log.timestamp}
-                  </p>
+                  {editingLogId === index ? (
+                    <div>
+                      <textarea
+                        value={editMessage}
+                        onChange={(e) => setEditMessage(e.target.value)}
+                      ></textarea>
+                      <button onClick={editLog}>Enregistrer</button>
+                      <button onClick={() => setEditingLogId(null)}>Annuler</button>
+                    </div>
+                  ) : (
+                    <>
+                      <p>
+                        <strong>Message :</strong> {log.message}
+                      </p>
+                      <p>
+                        <strong>Auteur :</strong> {log.author}
+                      </p>
+                      <p className="timestamp">
+                        <strong>Date :</strong> {log.timestamp}
+                      </p>
+                      {account === log.author && (
+                        <button
+                          onClick={() => {
+                            setEditingLogId(index);
+                            setEditMessage(log.message);
+                          }}
+                        >
+                          Modifier
+                        </button>
+                      )}
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
