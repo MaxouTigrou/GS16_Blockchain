@@ -19,8 +19,8 @@ Avant de commencer, assurez-vous d'avoir les outils suivants installés sur votr
 Cloner ce projet sur votre machine locale avec la commande suivante :
 
 ```bash
-git clone https://github.com/MaxouTigrou/GS16_Blockchains.git
-cd blockchain-logs
+git clone https://github.com/MaxouTigrou/GS16_Blockchain.git
+cd GS16_Blockchain
 ```
 ### 2. Cloner le projet
 
