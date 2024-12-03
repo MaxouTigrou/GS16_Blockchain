@@ -9649,12 +9649,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x2F50700450D42c26D3621e109cb48dda3058cbD8",
-      "transactionHash": "0x52a1a4782ce8bed9eaf4f42e190d0f624c14f84c637a0bd32e5837350e24c239"
+      "address": "0x6F607809a9629a0c8ae0cF4DB20F7E30c46DBdB2",
+      "transactionHash": "0x7b4181a6f2f59417823b86ee199a857b7ec9315834db3aeee6db9f30c3ee64d1"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-12-02T23:05:45.548Z",
+  "updatedAt": "2024-12-03T21:40:04.653Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
